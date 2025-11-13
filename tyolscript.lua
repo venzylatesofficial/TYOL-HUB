@@ -1,17 +1,17 @@
 local Rayfield = loadstring(game:HttpGet('https://sirius.menu/rayfield'))()
 
 local Window = Rayfield:CreateWindow({
-   Name = "TYOUL HUB",
-   LoadingTitle = "Free Script",
-   LoadingSubtitle = "by TYOUL",
+   Name = "VENZLA SCRIPT",
+   LoadingTitle = "UNIVERSAL SCRIPT BY VENZLA",
+   LoadingSubtitle = "CREATED BY VENZLA",
    ConfigurationSaving = {
       Enabled = false,
       FolderName = nil, -- Create a custom folder for your hub/game
-      FileName = "Example Hub"
+      FileName = "VENZLA SCRIPT" -- Create a custom file name for your hub/game
    },
    Discord = {
-      Enabled = false,
-      Invite = "noinvitelink", -- The Discord invite code, do not include discord.gg/. E.g. discord.gg/ABCD would be ABCD
+      Enabled = true,
+      Invite = "FUW2kEkUZ", -- The Discord invite code, do not include discord.gg/. E.g. discord.gg/ABCD would be ABCD
       RememberJoins = true -- Set this to false to make them join the discord every time they load it up
    },
    KeySystem = false, -- Set this to true to use our key system
@@ -30,8 +30,8 @@ local MainTab = Window:CreateTab("Home", nil) -- Title, Image
 local MainSection = MainTab:CreateSection("Main")
 
 Rayfield:Notify({
-   Title = "Jangan Lupa Follow Tiktok Kami",
-   Content = "TyoulHUB",
+   Title = "FOLLOW TIKTOK @pdk.vl25",
+   Content = "@pdk.vl25",
    Duration = 5,
    Image = 13047715178,
    Actions = { -- Notification Buttons
@@ -111,242 +111,44 @@ local Input = MainTab:CreateInput({
 })
 
 
-local TPTab = Window:CreateTab("TP MT YNTKTS", nil) -- Title, Image
+local TPTab = Window:CreateTab("TP MT YNTKTS", nil)
 local Maintp = TPTab:CreateSection("Teleport to Checkpoints")
 
+-- Fungsi teleport jarak jauh
+local function safeTeleport(part)
+    local player = game.Players.LocalPlayer
+    local character = player.Character or player.CharacterAdded:Wait()
+    local hrp = character:WaitForChild("HumanoidRootPart", 5)
 
-local Button1 = TPTab:CreateButton({
-   Name = "cp1",
-   Callback = function(Text)
-      local player = game.Players.LocalPlayer
-      local targetPart = game:GetService("Workspace").Checkpoints.cp1
-      
-      if player and player.Character and player.Character:FindFirstChild("HumanoidRootPart") then
-         player.Character.HumanoidRootPart.CFrame = targetPart.CFrame + Vector3.new(0, 5, 0)
-         -- ditambah Vector3.new(0,5,0) supaya tidak nempel persis di dalam part
-      end
-   end,
-})
+    if hrp and part and part:IsA("BasePart") then
+        -- Pastikan part sudah tersedia di client
+        if part:IsDescendantOf(workspace) then
+            hrp.CFrame = part.CFrame + Vector3.new(0, 5, 0)
+        else
+            warn("Target part belum tersedia di client.")
+        end
+    else
+        warn("Teleport gagal: HumanoidRootPart atau target tidak valid.")
+    end
+end
 
+-- Daftar checkpoint
+local checkpoints = {
+    "cp1", "cp2", "cp3", "cp4", "cp5", "cp6", "cp7", "cp8", "cp9",
+    "cp10", "cp11", "cp12", "cp13", "cp14", "cp15", "cp16", "cp17", "cp18"
+}
 
-local Button2 = TPTab:CreateButton({
-   Name = "cp2",
-   Callback = function(Text)
-      local player = game.Players.LocalPlayer
-      local targetPart = game:GetService("Workspace").Checkpoints.cp2
-      
-      if player and player.Character and player.Character:FindFirstChild("HumanoidRootPart") then
-         player.Character.HumanoidRootPart.CFrame = targetPart.CFrame + Vector3.new(0, 5, 0)
-         -- ditambah Vector3.new(0,5,0) supaya tidak nempel persis di dalam part
-      end
-   end,
-})
-
-local Button3 = TPTab:CreateButton({
-   Name = "cp3",
-   Callback = function(Text)
-      local player = game.Players.LocalPlayer
-      local targetPart = game:GetService("Workspace").Checkpoints.cp3
-      
-      if player and player.Character and player.Character:FindFirstChild("HumanoidRootPart") then
-         player.Character.HumanoidRootPart.CFrame = targetPart.CFrame + Vector3.new(0, 5, 0)
-         -- ditambah Vector3.new(0,5,0) supaya tidak nempel persis di dalam part
-      end
-   end,
-})
-
-local Button4 = TPTab:CreateButton({
-   Name = "cp4",
-   Callback = function(Text)
-      local player = game.Players.LocalPlayer
-      local targetPart = game:GetService("Workspace").Checkpoints.cp4
-      
-      if player and player.Character and player.Character:FindFirstChild("HumanoidRootPart") then
-         player.Character.HumanoidRootPart.CFrame = targetPart.CFrame + Vector3.new(0, 5, 0)
-         -- ditambah Vector3.new(0,5,0) supaya tidak nempel persis di dalam part
-      end
-   end,
-})
-
-local Button5 = TPTab:CreateButton({
-   Name = "cp5",
-   Callback = function(Text)
-      local player = game.Players.LocalPlayer
-      local targetPart = game:GetService("Workspace").Checkpoints.cp5
-      
-      if player and player.Character and player.Character:FindFirstChild("HumanoidRootPart") then
-         player.Character.HumanoidRootPart.CFrame = targetPart.CFrame + Vector3.new(0, 5, 0)
-         -- ditambah Vector3.new(0,5,0) supaya tidak nempel persis di dalam part
-      end
-   end,
-})
-
-local Button6 = TPTab:CreateButton({
-   Name = "cp6",
-   Callback = function(Text)
-      local player = game.Players.LocalPlayer
-      local targetPart = game:GetService("Workspace").Checkpoints.cp6
-      
-      if player and player.Character and player.Character:FindFirstChild("HumanoidRootPart") then
-         player.Character.HumanoidRootPart.CFrame = targetPart.CFrame + Vector3.new(0, 5, 0)
-         -- ditambah Vector3.new(0,5,0) supaya tidak nempel persis di dalam part
-      end
-   end,
-})
-
-local Button7 = TPTab:CreateButton({
-   Name = "cp7",
-   Callback = function(Text)
-      local player = game.Players.LocalPlayer
-      local targetPart = game:GetService("Workspace").Checkpoints.cp7
-      
-      if player and player.Character and player.Character:FindFirstChild("HumanoidRootPart") then
-         player.Character.HumanoidRootPart.CFrame = targetPart.CFrame + Vector3.new(0, 5, 0)
-         -- ditambah Vector3.new(0,5,0) supaya tidak nempel persis di dalam part
-      end
-   end,
-})
-
-local Button8 = TPTab:CreateButton({
-   Name = "cp8",
-   Callback = function(Text)
-      local player = game.Players.LocalPlayer
-      local targetPart = game:GetService("Workspace").Checkpoints.cp8
-      
-      if player and player.Character and player.Character:FindFirstChild("HumanoidRootPart") then
-         player.Character.HumanoidRootPart.CFrame = targetPart.CFrame + Vector3.new(0, 5, 0)
-         -- ditambah Vector3.new(0,5,0) supaya tidak nempel persis di dalam part
-      end
-   end,
-})
-
-local Button9 = TPTab:CreateButton({
-   Name = "cp9",
-   Callback = function(Text)
-      local player = game.Players.LocalPlayer
-      local targetPart = game:GetService("Workspace").Checkpoints.cp9
-      
-      if player and player.Character and player.Character:FindFirstChild("HumanoidRootPart") then
-         player.Character.HumanoidRootPart.CFrame = targetPart.CFrame + Vector3.new(0, 5, 0)
-         -- ditambah Vector3.new(0,5,0) supaya tidak nempel persis di dalam part
-      end
-   end,
-})
-
-local Button10 = TPTab:CreateButton({
-   Name = "cp10",
-   Callback = function(Text)
-      local player = game.Players.LocalPlayer
-      local targetPart = game:GetService("Workspace").Checkpoints.cp10
-      
-      if player and player.Character and player.Character:FindFirstChild("HumanoidRootPart") then
-         player.Character.HumanoidRootPart.CFrame = targetPart.CFrame + Vector3.new(0, 5, 0)
-         -- ditambah Vector3.new(0,5,0) supaya tidak nempel persis di dalam part
-      end
-   end,
-})
-
-local Button11 = TPTab:CreateButton({
-   Name = "cp11",
-   Callback = function(Text)
-      local player = game.Players.LocalPlayer
-      local targetPart = game:GetService("Workspace").Checkpoints.cp11
-      
-      if player and player.Character and player.Character:FindFirstChild("HumanoidRootPart") then
-         player.Character.HumanoidRootPart.CFrame = targetPart.CFrame + Vector3.new(0, 5, 0)
-         -- ditambah Vector3.new(0,5,0) supaya tidak nempel persis di dalam part
-      end
-   end,
-})
-
-local Button12 = TPTab:CreateButton({
-   Name = "cp12",
-   Callback = function(Text)
-      local player = game.Players.LocalPlayer
-      local targetPart = game:GetService("Workspace").Checkpoints.cp12
-      
-      if player and player.Character and player.Character:FindFirstChild("HumanoidRootPart") then
-         player.Character.HumanoidRootPart.CFrame = targetPart.CFrame + Vector3.new(0, 5, 0)
-         -- ditambah Vector3.new(0,5,0) supaya tidak nempel persis di dalam part
-      end
-   end,
-})
-
-
-local Button13 = TPTab:CreateButton({
-   Name = "cp13",
-   Callback = function(Text)
-      local player = game.Players.LocalPlayer
-      local targetPart = game:GetService("Workspace").Checkpoints.cp13
-      
-      if player and player.Character and player.Character:FindFirstChild("HumanoidRootPart") then
-         player.Character.HumanoidRootPart.CFrame = targetPart.CFrame + Vector3.new(0, 5, 0)
-         -- ditambah Vector3.new(0,5,0) supaya tidak nempel persis di dalam part
-      end
-   end,
-})
-
-local Button14 = TPTab:CreateButton({
-   Name = "cp14",
-   Callback = function(Text)
-      local player = game.Players.LocalPlayer
-      local targetPart = game:GetService("Workspace").Checkpoints.cp14
-      
-      if player and player.Character and player.Character:FindFirstChild("HumanoidRootPart") then
-         player.Character.HumanoidRootPart.CFrame = targetPart.CFrame + Vector3.new(0, 5, 0)
-         -- ditambah Vector3.new(0,5,0) supaya tidak nempel persis di dalam part
-      end
-   end,
-})
-
-local Button15 = TPTab:CreateButton({
-   Name = "cp15",
-   Callback = function(Text)
-      local player = game.Players.LocalPlayer
-      local targetPart = game:GetService("Workspace").Checkpoints.cp15
-      
-      if player and player.Character and player.Character:FindFirstChild("HumanoidRootPart") then
-         player.Character.HumanoidRootPart.CFrame = targetPart.CFrame + Vector3.new(0, 5, 0)
-         -- ditambah Vector3.new(0,5,0) supaya tidak nempel persis di dalam part
-      end
-   end,
-})
-
-local button16 = TPTab:CreateButton({
-   Name = "cp16",
-   Callback = function(Text)
-      local player = game.Players.LocalPlayer
-      local targetPart = game:GetService("Workspace").Checkpoints.cp16
-      
-      if player and player.Character and player.Character:FindFirstChild("HumanoidRootPart") then
-         player.Character.HumanoidRootPart.CFrame = targetPart.CFrame + Vector3.new(0, 5, 0)
-         -- ditambah Vector3.new(0,5,0) supaya tidak nempel persis di dalam part
-      end
-   end,
-})
-
-local button17 = TPTab:CreateButton({
-   Name = "cp17",
-   Callback = function(Text)
-      local player = game.Players.LocalPlayer
-      local targetPart = game:GetService("Workspace").Checkpoints.cp17
-      
-      if player and player.Character and player.Character:FindFirstChild("HumanoidRootPart") then
-         player.Character.HumanoidRootPart.CFrame = targetPart.CFrame + Vector3.new(0, 5, 0)
-         -- ditambah Vector3.new(0,5,0) supaya tidak nempel persis di dalam part
-      end
-   end,
-})
-
-local button18 = TPTab:CreateButton({
-   Name = "cp18",
-   Callback = function(Text)
-      local player = game.Players.LocalPlayer
-      local targetPart = game:GetService("Workspace").Checkpoints.cp18
-      
-      if player and player.Character and player.Character:FindFirstChild("HumanoidRootPart") then
-         player.Character.HumanoidRootPart.CFrame = targetPart.CFrame + Vector3.new(0, 5, 0)
-         -- ditambah Vector3.new(0,5,0) supaya tidak nempel persis di dalam part
-      end
-   end,
-})
+-- Buat tombol otomatis
+for _, cpName in ipairs(checkpoints) do
+    TPTab:CreateButton({
+        Name = cpName,
+        Callback = function()
+            local targetPart = game:GetService("Workspace").Checkpoints:FindFirstChild(cpName)
+            if targetPart then
+                safeTeleport(targetPart)
+            else
+                warn("Checkpoint " .. cpName .. " tidak ditemukan.")
+            end
+        end,
+    })
+end

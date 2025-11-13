@@ -152,3 +152,62 @@ for _, cpName in ipairs(checkpoints) do
         end,
     })
 end
+
+local AutoTp = TPTab:CreateSection("Auto Teleport to Checkpoints")
+
+
+local checkpoints = {
+    "cp1","cp2","cp3","cp4","cp5","cp6","cp7","cp8","cp9",
+    "cp10","cp11","cp12","cp13","cp14","cp15","cp16","cp17","cp18"
+}
+
+-- fungsi teleport aman
+local function safeTeleport(part)
+    local player = game.Players.LocalPlayer
+    local character = player.Character or player.CharacterAdded:Wait()
+    local hrp = character:WaitForChild("HumanoidRootPart", 5)
+    if hrp and part and part:IsA("BasePart") then
+        hrp.CFrame = part.CFrame + Vector3.new(0,5,0)
+    end
+end
+
+-- variabel kontrol
+local autoTeleport = false
+local currentIndex = 1 -- mulai dari cp1
+
+-- loop auto teleport
+task.spawn(function()
+    while true do
+        if autoTeleport then
+            local cpName = checkpoints[currentIndex]
+            local targetPart = game:GetService("Workspace").Checkpoints:FindFirstChild(cpName)
+            if targetPart then
+                safeTeleport(targetPart)
+            end
+
+            -- maju ke checkpoint berikutnya
+            currentIndex = currentIndex + 1
+            if currentIndex > #checkpoints then
+                currentIndex = 1 -- balik ke awal kalau sudah habis
+            end
+
+            -- tunggu sebelum lanjut
+            for i=1,30 do -- 30 * 0.1 = 3 detik
+                if not autoTeleport then break end
+                task.wait(0.1)
+            end
+        else
+            task.wait(0.1) -- idle saat toggle off
+        end
+    end
+end)
+
+-- toggle di Rayfield
+local Toggle = TPTab:CreateToggle({
+    Name = "Auto Teleport",
+    CurrentValue = false,
+    Flag = "AutoTeleportFlag",
+    Callback = function(Value)
+        autoTeleport = Value
+    end,
+})

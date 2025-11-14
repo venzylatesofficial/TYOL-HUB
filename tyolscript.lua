@@ -1,149 +1,285 @@
+-- Load Rayfield Library
 local Rayfield = loadstring(game:HttpGet('https://sirius.menu/rayfield'))()
 
+-- Buat Window
 local Window = Rayfield:CreateWindow({
    Name = "VENZLA SCRIPT",
    LoadingTitle = "UNIVERSAL SCRIPT BY VENZLA",
    LoadingSubtitle = "CREATED BY VENZLA",
    ConfigurationSaving = {
       Enabled = false,
-      FolderName = nil, -- Create a custom folder for your hub/game
-      FileName = "VENZLA SCRIPT" -- Create a custom file name for your hub/game
+      FolderName = nil,
+      FileName = "VENZLA SCRIPT"
    },
    Discord = {
       Enabled = true,
-      Invite = "FUW2kEkUZ", -- The Discord invite code, do not include discord.gg/. E.g. discord.gg/ABCD would be ABCD
-      RememberJoins = true -- Set this to false to make them join the discord every time they load it up
+      Invite = "FUW2kEkUZ",
+      RememberJoins = true
    },
-   KeySystem = false, -- Set this to true to use our key system
-   KeySettings = {
-      Title = "Key | Youtube Hub",
-      Subtitle = "Key System",
-      Note = "Key In Discord Server",
-      FileName = "YoutubeHubKey1", -- It is recommended to use something unique as other scripts using Rayfield may overwrite your key file
-      SaveKey = false, -- The user's key will be saved, but if you change the key, they will be unable to use your script
-      GrabKeyFromSite = true, -- If this is true, set Key below to the RAW site you would like Rayfield to get the key from
-      Key = {"https://pastebin.com/raw/AtgzSPWK"} -- List of keys that will be accepted by the system, can be RAW file links (pastebin, github etc) or simple strings ("hello","key22")
-   }
+   KeySystem = false,
 })
 
-local MainTab = Window:CreateTab("Home", nil) -- Title, Image
-local MainSection = MainTab:CreateSection("Main")
+-- Tab Home
+local MainTab = Window:CreateTab("Home", nil)
+MainTab:CreateSection("Main")
 
 Rayfield:Notify({
    Title = "FOLLOW TIKTOK @pdk.vl25",
    Content = "@pdk.vl25",
    Duration = 5,
    Image = 13047715178,
-   Actions = { -- Notification Buttons
+   Actions = {
       Ignore = {
          Name = "Okay!",
-         Callback = function()
-         print("The user tapped Okay!")
-      end
-   },
-},
+         Callback = function() print("The user tapped Okay!") end
+      }
+   }
 })
 
+---------------------------------------------------
+-- Services & player
+local uis = game:GetService("UserInputService")
+local player = game.Players.LocalPlayer
 
+---------------------------------------------------
+-- Fly system 
+local flyEnabled = false
+local flySpeed = 50
+local bv, bg
 
-local Button = MainTab:CreateButton({
-   Name = "Infinite Jump Toggle",
-   Callback = function()
-       --Toggles the infinite jump between on or off on every script run
-_G.infinjump = not _G.infinjump
-
-if _G.infinJumpStarted == nil then
-	--Ensures this only runs once to save resources
-	_G.infinJumpStarted = true
-	
-	--Notifies readiness
-	game.StarterGui:SetCore("SendNotification", {Title="Youtube Hub"; Text="Infinite Jump Activated!"; Duration=5;})
-
-	--The actual infinite jump
-	local plr = game:GetService('Players').LocalPlayer
-	local m = plr:GetMouse()
-	m.KeyDown:connect(function(k)
-		if _G.infinjump then
-			if k:byte() == 32 then
-			humanoid = game:GetService'Players'.LocalPlayer.Character:FindFirstChildOfClass('Humanoid')
-			humanoid:ChangeState('Jumping')
-			wait()
-			humanoid:ChangeState('Seated')
-			end
-		end
-	end)
+local function cleanFlyFor(hrp)
+    if hrp:FindFirstChild("FlyVelocity") then hrp.FlyVelocity:Destroy() end
+    if hrp:FindFirstChild("FlyGyro") then hrp.FlyGyro:Destroy() end
 end
+
+local function setFly(state)
+    local character = player.Character or player.CharacterAdded:Wait()
+    local hrp = character:WaitForChild("HumanoidRootPart")
+
+    if state then
+        bv = Instance.new("BodyVelocity")
+        bv.Name = "FlyVelocity"
+        bv.MaxForce = Vector3.new(1e5, 1e5, 1e5)
+        bv.Velocity = Vector3.new(0,0,0)
+        bv.Parent = hrp
+
+        bg = Instance.new("BodyGyro")
+        bg.Name = "FlyGyro"
+        bg.MaxTorque = Vector3.new(1e5, 1e5, 1e5)
+        bg.CFrame = hrp.CFrame
+        bg.Parent = hrp
+
+        task.spawn(function()
+            while flyEnabled and hrp and bv and bg do
+                local cam = workspace.CurrentCamera
+                local move = Vector3.new()
+
+                if uis:IsKeyDown(Enum.KeyCode.W) then move = move + cam.CFrame.LookVector end
+                if uis:IsKeyDown(Enum.KeyCode.S) then move = move - cam.CFrame.LookVector end
+                if uis:IsKeyDown(Enum.KeyCode.A) then move = move - cam.CFrame.RightVector end
+                if uis:IsKeyDown(Enum.KeyCode.D) then move = move + cam.CFrame.RightVector end
+                if uis:IsKeyDown(Enum.KeyCode.Space) then move = move + Vector3.new(0,1,0) end
+
+                if move.Magnitude > 0 then
+                    bv.Velocity = move.Unit * flySpeed
+                else
+                    bv.Velocity = Vector3.new(0,0,0)
+                end
+
+                bg.CFrame = cam.CFrame
+                task.wait()
+            end
+        end)
+    else
+        cleanFlyFor(hrp)
+        if bv then bv = nil end
+        if bg then bg = nil end
+    end
+end
+
+MainTab:CreateToggle({
+   Name = "Fly Toggle",
+   CurrentValue = false,
+   Flag = "FlyToggle",
+   Callback = function(Value)
+      flyEnabled = Value
+      setFly(flyEnabled)
    end,
 })
 
-local Slider = MainTab:CreateSlider({
+MainTab:CreateSlider({
+   Name = "Fly Speed",
+   Range = {10, 200},
+   Increment = 5,
+   Suffix = "Speed",
+   CurrentValue = flySpeed,
+   Flag = "FlySpeedSlider",
+   Callback = function(Value) flySpeed = Value end,
+})
+
+---------------------------------------------------
+-- No Clip Toggle
+local noclipEnabled = false
+local originalCollide = {} -- cache part yang awalnya collidable
+
+local function applyNoClip(char)
+    table.clear(originalCollide)
+    for _, part in ipairs(char:GetDescendants()) do
+        if part:IsA("BasePart") and part.CanCollide == true then
+            originalCollide[part] = true
+            part.CanCollide = false
+        end
+    end
+end
+
+local function restoreCollide(char)
+    local hrp = char:FindFirstChild("HumanoidRootPart")
+    if hrp then
+        hrp.AssemblyLinearVelocity = Vector3.new(0,0,0)
+        hrp.AssemblyAngularVelocity = Vector3.new(0,0,0)
+        hrp.CFrame = hrp.CFrame + Vector3.new(0, 2, 0)
+    end
+    for part, _ in pairs(originalCollide) do
+        if part and part.Parent then
+            part.CanCollide = true
+        end
+    end
+    table.clear(originalCollide)
+end
+
+MainTab:CreateToggle({
+   Name = "No Clip Toggle",
+   CurrentValue = false,
+   Flag = "NoClipToggle",
+   Callback = function(Value)
+      noclipEnabled = Value
+      local char = player.Character or player.CharacterAdded:Wait()
+      if noclipEnabled then
+          applyNoClip(char)
+      else
+          restoreCollide(char)
+      end
+   end,
+})
+
+-- maintenance loop untuk menjaga noclip saat karakter respawn/part baru
+task.spawn(function()
+    while true do
+        if noclipEnabled then
+            local char = player.Character
+            if char then
+                for _, part in ipairs(char:GetDescendants()) do
+                    if part:IsA("BasePart") and originalCollide[part] ~= nil then
+                        part.CanCollide = false
+                    end
+                end
+            end
+        end
+        task.wait(0.2)
+    end
+end)
+
+---------------------------------------------------
+local Toggle = MainTab:CreateToggle({
+   Name = "Infinite Jump Toggle",
+   CurrentValue = false,
+   Flag = "InfJumpToggle",
+   Callback = function(Value)
+       --Toggles the infinite jump between on or off on every script run
+       _G.infinjump = Value
+
+       if _G.infinJumpStarted == nil then
+           --Ensures this only runs once to save resources
+           _G.infinJumpStarted = true
+
+           --Notifies readiness
+           game.StarterGui:SetCore("SendNotification", {Title="Youtube Hub"; Text="Infinite Jump Activated!"; Duration=5;})
+
+           --The actual infinite jump
+           local plr = game:GetService('Players').LocalPlayer
+           local m = plr:GetMouse()
+           m.KeyDown:Connect(function(k)
+               if _G.infinjump then
+                   if k:byte() == 32 then
+                       local humanoid = game:GetService('Players').LocalPlayer.Character:FindFirstChildOfClass('Humanoid')
+                       humanoid:ChangeState('Jumping')
+                       wait()
+                       humanoid:ChangeState('Seated')
+                   end
+               end
+           end)
+       end
+   end,
+})
+
+
+---------------------------------------------------
+-- Sliders WalkSpeed & JumpPower
+MainTab:CreateSlider({
    Name = "WalkSpeed Slider",
    Range = {1, 350},
    Increment = 1,
    Suffix = "Speed",
    CurrentValue = 16,
-   Flag = "sliderws", -- A flag is the identifier for the configuration file, make sure every element has a different flag if you're using configuration saving to ensure no overlaps
+   Flag = "sliderws",
    Callback = function(Value)
-        game.Players.LocalPlayer.Character.Humanoid.WalkSpeed = (Value)
+        local char = player.Character or player.CharacterAdded:Wait()
+        local hum = char:FindFirstChildOfClass('Humanoid')
+        if hum then hum.WalkSpeed = Value end
    end,
 })
 
-local Slider = MainTab:CreateSlider({
+MainTab:CreateSlider({
    Name = "JumpPower Slider",
    Range = {1, 350},
    Increment = 1,
-   Suffix = "Speed",
-   CurrentValue = 16,
-   Flag = "sliderjp", -- A flag is the identifier for the configuration file, make sure every element has a different flag if you're using configuration saving to ensure no overlaps
+   Suffix = "Power",
+   CurrentValue = 50,
+   Flag = "sliderjp",
    Callback = function(Value)
-        game.Players.LocalPlayer.Character.Humanoid.JumpPower = (Value)
+        local char = player.Character or player.CharacterAdded:Wait()
+        local hum = char:FindFirstChildOfClass('Humanoid')
+        if hum then hum.JumpPower = Value end
    end,
 })
 
-
-local Input = MainTab:CreateInput({
+MainTab:CreateInput({
    Name = "Walkspeed",
    PlaceholderText = "1-500",
    RemoveTextAfterFocusLost = true,
    Callback = function(Text)
-        game.Players.LocalPlayer.Character.Humanoid.WalkSpeed = (Text)
+        local n = tonumber(Text)
+        if not n then return end
+        local char = player.Character or player.CharacterAdded:Wait()
+        local hum = char:FindFirstChildOfClass('Humanoid')
+        if hum then hum.WalkSpeed = n end
    end,
 })
 
-
+---------------------------------------------------
+-- Tab Teleport
 local TPTab = Window:CreateTab("TP MT YNTKTS", nil)
-local Maintp = TPTab:CreateSection("Teleport to Checkpoints")
+TPTab:CreateSection("Teleport to Checkpoints")
 
--- Fungsi teleport jarak jauh
 local function safeTeleport(part)
-    local player = game.Players.LocalPlayer
-    local character = player.Character or player.CharacterAdded:Wait()
+    local playerLocal = game.Players.LocalPlayer
+    local character = playerLocal.Character or playerLocal.CharacterAdded:Wait()
     local hrp = character:WaitForChild("HumanoidRootPart", 5)
-
     if hrp and part and part:IsA("BasePart") then
-        -- Pastikan part sudah tersedia di client
-        if part:IsDescendantOf(workspace) then
-            hrp.CFrame = part.CFrame + Vector3.new(0, 5, 0)
-        else
-            warn("Target part belum tersedia di client.")
-        end
-    else
-        warn("Teleport gagal: HumanoidRootPart atau target tidak valid.")
+        hrp.CFrame = part.CFrame + Vector3.new(0, 5, 0)
     end
 end
 
--- Daftar checkpoint
 local checkpoints = {
-    "cp1", "cp2", "cp3", "cp4", "cp5", "cp6", "cp7", "cp8", "cp9",
-    "cp10", "cp11", "cp12", "cp13", "cp14", "cp15", "cp16", "cp17", "cp18"
+    "cp1","cp2","cp3","cp4","cp5","cp6","cp7","cp8","cp9",
+    "cp10","cp11","cp12","cp13","cp14","cp15","cp16","cp17","cp18"
 }
 
--- Buat tombol otomatis
 for _, cpName in ipairs(checkpoints) do
     TPTab:CreateButton({
         Name = cpName,
         Callback = function()
-            local targetPart = game:GetService("Workspace").Checkpoints:FindFirstChild(cpName)
+            local targetPart = workspace.Checkpoints:FindFirstChild(cpName)
             if targetPart then
                 safeTeleport(targetPart)
             else
@@ -153,61 +289,35 @@ for _, cpName in ipairs(checkpoints) do
     })
 end
 
-local AutoTp = TPTab:CreateSection("Auto Teleport to Checkpoints")
+-- Auto Teleport
+TPTab:CreateSection("Auto Teleport to Checkpoints")
 
-
-local checkpoints = {
-    "cp1","cp2","cp3","cp4","cp5","cp6","cp7","cp8","cp9",
-    "cp10","cp11","cp12","cp13","cp14","cp15","cp16","cp17","cp18"
-}
-
--- fungsi teleport aman
-local function safeTeleport(part)
-    local player = game.Players.LocalPlayer
-    local character = player.Character or player.CharacterAdded:Wait()
-    local hrp = character:WaitForChild("HumanoidRootPart", 5)
-    if hrp and part and part:IsA("BasePart") then
-        hrp.CFrame = part.CFrame + Vector3.new(0,5,0)
-    end
-end
-
--- variabel kontrol
 local autoTeleport = false
-local currentIndex = 1 -- mulai dari cp1
+local currentIndex = 1
 
--- loop auto teleport
 task.spawn(function()
     while true do
         if autoTeleport then
             local cpName = checkpoints[currentIndex]
-            local targetPart = game:GetService("Workspace").Checkpoints:FindFirstChild(cpName)
+            local targetPart = workspace.Checkpoints:FindFirstChild(cpName)
             if targetPart then
                 safeTeleport(targetPart)
             end
-
-            -- maju ke checkpoint berikutnya
             currentIndex = currentIndex + 1
-            if currentIndex > #checkpoints then
-                currentIndex = 1 -- balik ke awal kalau sudah habis
-            end
-
-            -- tunggu sebelum lanjut
-            for i=1,30 do -- 30 * 0.1 = 3 detik
+            if currentIndex > #checkpoints then currentIndex = 1 end
+            for i=1,30 do
                 if not autoTeleport then break end
                 task.wait(0.1)
             end
         else
-            task.wait(0.1) -- idle saat toggle off
+            task.wait(0.1)
         end
     end
 end)
 
--- toggle di Rayfield
-local Toggle = TPTab:CreateToggle({
+TPTab:CreateToggle({
     Name = "Auto Teleport",
     CurrentValue = false,
     Flag = "AutoTeleportFlag",
-    Callback = function(Value)
-        autoTeleport = Value
-    end,
+    Callback = function(Value) autoTeleport = Value end,
 })
